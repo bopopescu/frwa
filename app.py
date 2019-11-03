@@ -123,6 +123,7 @@ def train():
                     print("cool face has been saved")
                     face_data = {"id": face_id, "filename": filename, "created": created}
                     return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
+                    #app.face.load_specific(user_id)
                     app.face = Face(app)
                     return success_handle(return_output)
                 else:
@@ -181,25 +182,25 @@ def slot():
     print(nowminute)
     if((nowhour>=lunchhourstart and nowhour<=lunchhourend)):
         if(((nowhour == lunchhourstart and nowminute>=lunchminutestart) and (nowhour == lunchhourend and nowminute<=lunchminuteend)) or
-                (nowhour>lunchhourstart and nowminute<lunchminuteend)):
+                (nowhour>lunchhourstart)):
             return "lunch"
 
     if ((nowhour >= bkfsthourstart and nowhour <= bkfsthourend)):
         if (((nowhour == bkfsthourstart and nowminute >= bkfstminutestart) and (
                 nowhour == bkfsthourend and nowminute <= bkfstminuteend)) or
-                (nowhour > bkfsthourstart and nowminute < bkfstminuteend)):
+                (nowhour > bkfsthourstart)):
             return "breakfast"
 
     if ((nowhour >= hteahourstart and nowhour <= hteahourend)):
         if (((nowhour == hteahourstart and nowminute >= hteaminutestart) and (
                 nowhour == hteahourend and nowminute <= hteaminuteend)) or
-                (nowhour > hteahourstart and nowminute < hteaminuteend)):
+                (nowhour > hteahourstart)):
             return "hi-tea"
 
     if ((nowhour >= dinnerhourstart and nowhour <= dinnerhourend)):
         if (((nowhour == dinnerhourstart and nowminute >= dinnerminutestart) and (
                 nowhour == dinnerhourend and nowminute <= dinnerminuteend)) or
-                (nowhour > dinnerhourstart and nowminute < dinnerminuteend)):
+                (nowhour > dinnerhourstart)):
             return "dinner"
 
     return "not a valid time"
@@ -232,16 +233,22 @@ def recognize():
                 results = app.db.select(
                     "SELECT id, std_name, std_id, type, created FROM attendance1 WHERE std_id = %s and created = %s and type = %s",
                     [user_id, str(d1), slot()])
-
+                flag=False
                 for one_list in results:
+
                     if(len(one_list)!=0 and one_list[3]=='not a valid time'):
                         print("Invalid time")
+                        flag=True
+                        break
                     elif(len(one_list)!=0 and one_list[2]==user_id and one_list[3]==slot()):
                         print("Duplicate entry")
-                    else:
-                        att_id = app.db.insert('INSERT INTO attendance1(std_id,std_name,type,created) values(%s,%s,%s,%s)', [user_id,user["name"],slot(),str(d1)])
-                        print("attendance id is :")
-                        print(att_id)
+                        flag = True
+                        break
+                print(slot())
+                if(not flag and slot()!='not a valid time'):
+                    att_id = app.db.insert('INSERT INTO attendance1(std_id,std_name,type,created) values(%s,%s,%s,%s)', [user_id,user["name"],slot(),str(d1)])
+                    print("attendance id is :")
+                    print(att_id)
 
                 results = app.db.select(
                     "SELECT id, std_name, std_id, type, created FROM attendance1 WHERE std_id = %s and created = %s and type = %s",

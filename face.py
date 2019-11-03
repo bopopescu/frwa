@@ -59,6 +59,7 @@ class Face:
             index_key_string = str(index_key)
             self.face_user_keys['{0}'.format(index_key_string)] = user_id
 
+
     def recognize(self, unknown_filename):
         unknown_image = face_recognition.load_image_file(self.load_unknown_file_by_name(unknown_filename))
         print(unknown_image)
