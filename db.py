@@ -3,7 +3,7 @@ import mysql.connector
 class Database:
 
     def __init__(self):
-        self.connection =  mysql.connector.connect(host = "localhost", user = "root",passwd = "root", database = "face_recognition2", auth_plugin="mysql_native_password")
+        self.connection =  mysql.connector.connect(host = "localhost", user = "root",passwd = "shuham", database = "face_recognition2", auth_plugin="mysql_native_password")
         print("connection established")
 
 
