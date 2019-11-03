@@ -123,8 +123,10 @@ def train():
                     print("cool face has been saved")
                     face_data = {"id": face_id, "filename": filename, "created": created}
                     return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-                    #app.face.load_specific(user_id)
-                    app.face = Face(app)
+                    print("before train")
+                    app.face.load_specific(user_id)
+                    print("after train")
+                    #app.face = Face(app)
                     return success_handle(return_output)
                 else:
 
@@ -244,11 +246,15 @@ def recognize():
                         print("Duplicate entry")
                         flag = True
                         break
+
                 print(slot())
                 if(not flag and slot()!='not a valid time'):
+                    print("check shub")
+                    print(user)
                     att_id = app.db.insert('INSERT INTO attendance1(std_id,std_name,type,created) values(%s,%s,%s,%s)', [user_id,user["name"],slot(),str(d1)])
                     print("attendance id is :")
                     print(att_id)
+
 
                 results = app.db.select(
                     "SELECT id, std_name, std_id, type, created FROM attendance1 WHERE std_id = %s and created = %s and type = %s",
@@ -259,7 +265,6 @@ def recognize():
                            "user": user}
                 return success_handle(json.dumps(results))
             else:
-
                 return error_handle("Sorry we can not found any people matched with your face image, try another image")
 
 
