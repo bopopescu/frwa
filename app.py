@@ -247,7 +247,7 @@ def recognize():
                         flag = True
                         break
 
-                print(slot())
+                #print(slot())
                 if(not flag and slot()!='not a valid time'):
                     print("check shub")
                     print(user)
