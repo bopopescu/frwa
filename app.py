@@ -7,7 +7,10 @@ import time
 from datetime import date
 import datetime
 
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app)
 
 app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
@@ -16,7 +19,9 @@ app.face = Face(app)
 
 
 def success_handle(output, status=200, mimetype='application/json'):
-    return Response(output, status=status, mimetype=mimetype)
+    resp = Response(output, status=status, mimetype=mimetype)
+
+    return resp
 
 
 def error_handle(error_message, status=500, mimetype='application/json'):
@@ -162,10 +167,10 @@ def slot():
     lunchhourend = 14
     lunchminuteend = 30
 
-    bkfsthourstart = 7
-    bkfstminutestart = 30
-    bkfsthourend = 10
-    bkfstminuteend = 0
+    bkfsthourstart = 0
+    bkfstminutestart = 0
+    bkfsthourend = 11
+    bkfstminuteend = 30
 
     hteahourstart = 16
     hteaminutestart = 30
@@ -174,8 +179,8 @@ def slot():
 
     dinnerhourstart = 19
     dinnerminutestart = 30
-    dinnerhourend = 21
-    dinnerminuteend = 30
+    dinnerhourend = 23
+    dinnerminuteend = 50
 
     now = datetime.datetime.now()
     nowhour = now.hour
@@ -183,26 +188,27 @@ def slot():
     print(nowhour)
     print(nowminute)
     if((nowhour>=lunchhourstart and nowhour<=lunchhourend)):
-        if(((nowhour == lunchhourstart and nowminute>=lunchminutestart) and (nowhour == lunchhourend and nowminute<=lunchminuteend)) or
-                (nowhour>lunchhourstart)):
+        if(((nowhour == lunchhourstart and nowminute>=lunchminutestart) or
+            (nowhour == lunchhourend and nowminute<=lunchminuteend)) or
+                (nowhour>lunchhourstart and nowhour < lunchhourend )):
             return "lunch"
 
     if ((nowhour >= bkfsthourstart and nowhour <= bkfsthourend)):
-        if (((nowhour == bkfsthourstart and nowminute >= bkfstminutestart) and (
+        if (((nowhour == bkfsthourstart and nowminute >= bkfstminutestart) or (
                 nowhour == bkfsthourend and nowminute <= bkfstminuteend)) or
-                (nowhour > bkfsthourstart)):
+                (nowhour > bkfsthourstart and nowhour < bkfsthourend )):
             return "breakfast"
 
     if ((nowhour >= hteahourstart and nowhour <= hteahourend)):
-        if (((nowhour == hteahourstart and nowminute >= hteaminutestart) and (
+        if (((nowhour == hteahourstart and nowminute >= hteaminutestart) or (
                 nowhour == hteahourend and nowminute <= hteaminuteend)) or
-                (nowhour > hteahourstart)):
+                (nowhour > hteahourstart  and nowhour <  hteahourend )):
             return "hi-tea"
 
     if ((nowhour >= dinnerhourstart and nowhour <= dinnerhourend)):
-        if (((nowhour == dinnerhourstart and nowminute >= dinnerminutestart) and (
+        if (((nowhour == dinnerhourstart and nowminute >= dinnerminutestart) or (
                 nowhour == dinnerhourend and nowminute <= dinnerminuteend)) or
-                (nowhour > dinnerhourstart)):
+                (nowhour > dinnerhourstart  and nowhour < dinnerhourend )):
             return "dinner"
 
     return "not a valid time"
@@ -210,6 +216,8 @@ def slot():
 # router for recognize a unknown face
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
+    print("manpo checko")
+    print(request.files)
     if 'file' not in request.files:
         return error_handle("Image is required")
     else:
@@ -235,20 +243,15 @@ def recognize():
                 results = app.db.select(
                     "SELECT id, std_name, std_id, type, created FROM attendance1 WHERE std_id = %s and created = %s and type = %s",
                     [user_id, str(d1), slot()])
-                flag=False
-                for one_list in results:
+                flag = False
+                if(len(results)!=0):
+                    flag = True
 
-                    if(len(one_list)!=0 and one_list[3]=='not a valid time'):
-                        print("Invalid time")
-                        flag=True
-                        break
-                    elif(len(one_list)!=0 and one_list[2]==user_id and one_list[3]==slot()):
-                        print("Duplicate entry")
-                        flag = True
-                        break
+                print("slot check ")
+                nowSlot = slot()
 
-                #print(slot())
-                if(not flag and slot()!='not a valid time'):
+                print(slot())
+                if(not flag and slot()!="not a valid time"):
                     print("check shub")
                     print(user)
                     att_id = app.db.insert('INSERT INTO attendance1(std_id,std_name,type,created) values(%s,%s,%s,%s)', [user_id,user["name"],slot(),str(d1)])
@@ -263,7 +266,7 @@ def recognize():
 
                 message = {"message": "Hey we found {0} matched with your face image".format(user["name"]),
                            "user": user}
-                return success_handle(json.dumps(results))
+                return success_handle(json.dumps({"id": user_id, "name": user["name"], "slot": nowSlot}))
             else:
                 return error_handle("Sorry we can not found any people matched with your face image, try another image")
 
