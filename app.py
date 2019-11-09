@@ -6,6 +6,7 @@ from face import Face
 import time
 from datetime import date
 import datetime
+from datetime import datetime
 
 from flask_cors import CORS
 
@@ -103,7 +104,11 @@ def train():
             print("Information of that face", name)
 
             print("File is allowed and will be saved in ", app.config['storage'])
-            filename = secure_filename(file.filename)
+
+            now = datetime.now()
+            timestamp = datetime.timestamp(now)
+
+            filename = secure_filename(file.filename) + str(timestamp)
             trained_storage = path.join(app.config['storage'], 'trained')
             file.save(path.join(trained_storage, filename))
             # let start save file to our storage
@@ -182,7 +187,7 @@ def slot():
     dinnerhourend = 23
     dinnerminuteend = 50
 
-    now = datetime.datetime.now()
+    now = datetime.now()
     nowhour = now.hour
     nowminute = now.minute
     print(nowhour)

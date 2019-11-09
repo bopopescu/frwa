@@ -53,11 +53,14 @@ class Face:
             self.faces.append(face)
 
             face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
+            print("filename")
+            print (filename)
             face_image_encoding = face_recognition.face_encodings(face_image)[0]
             index_key = len(self.known_encoding_faces)
             self.known_encoding_faces.append(face_image_encoding)
             index_key_string = str(index_key)
             self.face_user_keys['{0}'.format(index_key_string)] = user_id
+            print("check jj")
 
     def load_specific(self,userId):
 
@@ -80,7 +83,8 @@ class Face:
             }
 
             self.faces.append(face)
-
+            print(face)
+            print ("check")
             face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
             face_image_encoding = face_recognition.face_encodings(face_image)[0]
             index_key = len(self.known_encoding_faces)
@@ -95,18 +99,24 @@ class Face:
         unknown_encoding_image = face_recognition.face_encodings(unknown_image)[0]
         print(self.known_encoding_faces)
         print("manp checks jj 3")
-        results = face_recognition.compare_faces(self.known_encoding_faces, unknown_encoding_image);
+        results = face_recognition.compare_faces(self.known_encoding_faces, unknown_encoding_image, 0.5);
+        results2 = face_recognition.api.face_distance(self.known_encoding_faces, unknown_encoding_image);
 
         print("results", results)
+        print("results2", results2)
 
         index_key = 0
+        user_id = -1;
+        prevmatch = 1.0
+
         for matched in results:
 
-            if matched:
+            if matched and results2[index_key]<prevmatch:
                 user_id = self.load_user_by_index_key(index_key)
-
-                return user_id
+                prevmatch = results2[index_key]
 
             index_key = index_key + 1
 
-        return None
+        if(user_id == -1):
+            return None
+        return user_id
