@@ -2,36 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2f2fcfc3-892b-4bf2-b553-9389fcea7219" name="Default Changelist" comment="added checks such that invalid data does not go to db">
-      <change beforePath="$PROJECT_DIR$/.idea/FRWA(Face Recognition Web App).iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/FRWA(Face Recognition Web App).iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/db.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/face.py" beforeDir="false" afterPath="$PROJECT_DIR$/face.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/aak_train.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/bhav_train.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/lk1.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/narang1.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/pp.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/rajuTrain.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/raju_bhiya_train.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/saurabTrain.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/sumit.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/tush_train.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/trained/yuvraj_train.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/Saurabhtest.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/aak_test.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/bhav_test.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/lk3.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/narang2.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/pp.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/rajuTest.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/raju_bhiya_test.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/raju_bhiya_test_2.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/sumittest.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/tush_test.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/tush_train.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/unknown/yuvraj_test.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/storage/unknown/blob" beforeDir="false" afterPath="$PROJECT_DIR$/storage/unknown/blob" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -83,6 +57,11 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">

@@ -114,11 +114,13 @@ def train():
             # let start save file to our storage
 
             # save to our sqlite database.db
-            created = int(time.time())
+            #created = int(time.time())
+            created = date.today()
+            created_format = created.strftime("%y-%m-%d")
             print("name is :"+name)
             print("created is ")
             print(created)
-            user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
+            user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, str(created_format)])
 
             if user_id:
 
@@ -126,7 +128,7 @@ def train():
                 # user has been save with user_id and now we need save faces table as well
 
                 face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)',
-                                        [user_id, filename, created])
+                                        [user_id, filename, str(created_format)])
 
                 if face_id:
 
@@ -240,7 +242,7 @@ def recognize():
             user_id = app.face.recognize(filename)
             today = date.today()
             # dd/mm/YY
-            d1 = today.strftime("%d/%m/%Y")
+            d1 = today.strftime("%y-%m-%d")
             print("d1 =", d1)
 
             if user_id:

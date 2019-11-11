@@ -1,5 +1,11 @@
 from os import path
 import face_recognition
+import time
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from scheduleReport import generate_report_daily, generate_report_monthly,generate_report_weekly
+
 
 class Face:
     def __init__(self, app):
@@ -9,6 +15,16 @@ class Face:
         self.known_encoding_faces = []  # faces data for recognition
         self.face_user_keys = {}
         self.load_all()
+
+        # scheduler to generate and mail reports
+        scheduler = BackgroundScheduler()
+        print("Schduler running")
+
+        scheduler.add_job(func=generate_report_daily, trigger='cron', hour=10, minute=55)
+        scheduler.add_job(func=generate_report_weekly, trigger='cron', day_of_week='mon', hour=11, minute=00)
+        # scheduler.add_job(func=generate_report_monthly, trigger='cron', day='last', hour=23, minute=00)
+        scheduler.add_job(func=generate_report_monthly, trigger='cron', day=11, hour=11, minute=5)
+        scheduler.start()
 
     def load_user_by_index_key(self, index_key=0):
 
@@ -103,6 +119,7 @@ class Face:
         results2 = face_recognition.api.face_distance(self.known_encoding_faces, unknown_encoding_image);
 
         print("results", results)
+        print("shubham")
         print("results2", results2)
 
         index_key = 0
