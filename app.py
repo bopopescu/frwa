@@ -1,13 +1,12 @@
-from flask import Flask, json, Response, request, render_template
+from flask import Flask, json, Response, request, render_template, send_file
 from werkzeug.utils import secure_filename
 from os import path, getcwd
 from db import Database
 from face import Face
 import time
-from datetime import date
-import datetime
-from datetime import datetime
-
+from datetime import date, datetime, timedelta
+import csv
+import requests
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -171,15 +170,15 @@ def slot():
     """Return true if x is in the range [start, end]"""
     lunchhourstart = 12
     lunchminutestart = 30
-    lunchhourend = 14
+    lunchhourend = 15
     lunchminuteend = 30
 
     bkfsthourstart = 0
     bkfstminutestart = 0
-    bkfsthourend = 11
+    bkfsthourend = 12
     bkfstminuteend = 30
 
-    hteahourstart = 16
+    hteahourstart = 15
     hteaminutestart = 30
     hteahourend = 17
     hteaminuteend = 30
@@ -224,7 +223,7 @@ def slot():
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
     print("manpo checko")
-    print(request.files)
+    #print(request.files)
     if 'file' not in request.files:
         return error_handle("Image is required")
     else:
@@ -277,6 +276,165 @@ def recognize():
             else:
                 return error_handle("Sorry we can not found any people matched with your face image, try another image")
 
+# router for recognize a unknown face
+@app.route('/api/admin/daily/<from_date>/<to_date>', methods=['GET','POST'])
+def report(from_date,to_date):
 
+    year, month, day = map(int, from_date.split('-'))
+    from_date = datetime(year, month, day)
+    from_date=from_date.date()
+
+    year, month, day = map(int, to_date.split('-'))
+    to_date = datetime(year, month, day)
+    to_date = to_date.date();
+    print("tush")
+    print((from_date - to_date).days +1)
+    # print(to_date)
+    total_count = app.db.select("select * from users")
+    count_breakfast = app.db.select("select * from attendance1 where type='breakfast' and created>= %s and created<= %s",
+                                    [from_date,to_date])
+    count_lunch = app.db.select("select * from attendance1 where type='lunch' and created>= %s and created<= %s",
+                                [from_date,to_date])
+    count_hitea = app.db.select("select * from attendance1 where type='hi-tea' and created>= %s and created<= %s",
+                                [from_date,to_date])
+    count_dinner = app.db.select("select * from attendance1 where type='dinner' and created>= %s and created<= %s",
+                                 [from_date,to_date])
+
+    #print(set(total_count))
+    #print("--------------------")
+    #print(set(count_breakfast))
+    days = ((from_date - to_date).days*-1) + 1
+    return success_handle(json.dumps({"total": len(total_count)*days, "count_breakfast": len(count_breakfast), "count_lunch":len(count_lunch), "count_hitea":len(count_hitea), "count_dinner":len(count_dinner)}))
 # Run the app
+
+
+@app.route('/api/admin/weekly', methods=['POST'])
+def weeklyReport():
+
+    today=date.today()
+    date_week_ago=today-timedelta(days=7)
+    # today = today.strftime("%y-%m-%d")
+    # date_week_ago = date_week_ago.strftime("%y-%m-%d")
+    print(today)
+    print(date_week_ago)
+    total_count = app.db.select("select * from users")
+    count_breakfast = app.db.select("select * from attendance1 where type='breakfast' and created>= %s and created<= %s",[date_week_ago,today])
+    count_lunch = app.db.select("select * from attendance1 where type='lunch' and created>= %s and created<= %s",
+                                    [date_week_ago, today])
+    count_hitea = app.db.select("select * from attendance1 where type='hi-tea' and created>= %s and created<= %s",
+                                    [date_week_ago, today])
+    count_dinner = app.db.select("select * from attendance1 where type='dinner' and created>= %s and created<= %s",
+                                [date_week_ago, today])
+
+    single_breakfast={}
+    for item in count_breakfast:
+        if str(item[4]) in single_breakfast:
+            single_breakfast[str(item[4])]+=1
+        else:
+            single_breakfast[str(item[4])]=1
+
+    single_lunch = {}
+    for item in count_lunch:
+        if str(item[4]) in single_lunch:
+            single_lunch[str(item[4])] += 1
+        else:
+            single_lunch[str(item[4])] = 1
+
+    single_hitea = {}
+    for item in count_hitea:
+        if str(item[4]) in single_hitea:
+            single_hitea[str(item[4])] += 1
+        else:
+            single_hitea[str(item[4])] = 1
+
+    single_dinner = {}
+    for item in count_dinner:
+        if str(item[4]) in single_dinner:
+            single_dinner[str(item[4])] += 1
+        else:
+            single_dinner[str(item[4])] = 1
+
+    return success_handle(json.dumps({"total_count":len(total_count), "count_breakfast":len(count_breakfast),"count_lunch":len(count_lunch),
+                                      "count_hitea":len(count_hitea), "count_dinner":len(count_dinner),
+                                      "single_breakfast":single_breakfast, "single_lunch":single_lunch, "single_hitea":single_hitea,
+                                      "single_dinner":single_dinner}))
+
+def daterange(start_date, end_date):
+    end_date=end_date+timedelta(1)
+    for n in range(int ((end_date - start_date).days)):
+        yield start_date + timedelta(n)
+
+@app.route('/api/admin/presentList/<from_date>/<to_date>', methods=['GET','POST'])
+def presentList(from_date,to_date):
+
+    year, month, day = map(int, from_date.split('-'))
+    from_date = datetime(year, month, day)
+    from_date=from_date.date()
+
+    year, month, day = map(int, to_date.split('-'))
+    to_date = datetime(year, month, day)
+    to_date = to_date.date();
+    print("tush")
+    print((from_date - to_date).days +1)
+    # print(to_date)
+    total_count = app.db.select("select * from users")
+    count_breakfast = app.db.select("select * from attendance1 where type='breakfast' and created>= %s and created<= %s",
+                                    [from_date,to_date])
+    count_lunch = app.db.select("select * from attendance1 where type='lunch' and created>= %s and created<= %s",
+                                [from_date,to_date])
+    count_hitea = app.db.select("select * from attendance1 where type='hi-tea' and created>= %s and created<= %s",
+                                [from_date,to_date])
+    count_dinner = app.db.select("select * from attendance1 where type='dinner' and created>= %s and created<= %s",
+                                 [from_date,to_date])
+
+    with open("/home/tushar/Desktop/presentStudents.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerows(count_breakfast)
+        writer.writerows(count_lunch)
+        writer.writerows(count_hitea)
+        writer.writerows(count_dinner)
+
+
+    path = "/home/tushar/Desktop/presentStudents.csv"
+    return send_file(path, as_attachment=True)
+
+@app.route('/api/admin/absentList/<from_date>/<to_date>', methods=['GET','POST'])
+def absentList(from_date,to_date):
+
+    year, month, day = map(int, from_date.split('-'))
+    from_date = datetime(year, month, day)
+    from_date=from_date.date()
+
+    year, month, day = map(int, to_date.split('-'))
+    to_date = datetime(year, month, day)
+    to_date = to_date.date();
+    print("tush")
+    print((from_date - to_date).days +1)
+    # print(to_date)
+    with open("/home/tushar/Desktop/absentStudents.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        for single_date in daterange(from_date,to_date):
+            #absent_breakfast=app.db.select("select * from users,attendance1 where type='breakfast' and attendance1.created= %s and users.id not in (select attendance1.std_id from attendance1)",[single_date])
+            absent_breakfast = app.db.select(
+                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'breakfast' and created= %s)",[single_date])
+            absent_lunch = app.db.select(
+                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'lunch' and created= %s)",
+                [single_date])
+            absent_hitea = app.db.select(
+                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'hi-tea' and created= %s)",
+                [single_date])
+            absent_dinner = app.db.select(
+                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'dinner' and created= %s)",
+                [single_date])
+
+            writer.writerows(absent_breakfast)
+            writer.writerows(absent_lunch)
+            writer.writerows(absent_hitea)
+            writer.writerows(absent_dinner)
+            #print(absent_breakfast)
+
+    path = "/home/tushar/Desktop/absentStudents.csv"
+    return send_file(path, as_attachment=True)
+
+
 app.run()

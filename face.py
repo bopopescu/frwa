@@ -2,6 +2,8 @@ from os import path
 import face_recognition
 import time
 import atexit
+
+from PIL import Image
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from scheduleReport import generate_report_daily, generate_report_monthly,generate_report_weekly
@@ -23,7 +25,7 @@ class Face:
         scheduler.add_job(func=generate_report_daily, trigger='cron', hour=10, minute=55)
         scheduler.add_job(func=generate_report_weekly, trigger='cron', day_of_week='mon', hour=11, minute=00)
         # scheduler.add_job(func=generate_report_monthly, trigger='cron', day='last', hour=23, minute=00)
-        scheduler.add_job(func=generate_report_monthly, trigger='cron', day=11, hour=11, minute=5)
+        scheduler.add_job(func=generate_report_monthly, trigger='cron', day=1, hour=11, minute=5)
         scheduler.start()
 
     def load_user_by_index_key(self, index_key=0):
@@ -69,14 +71,23 @@ class Face:
             self.faces.append(face)
 
             face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
-            print("filename")
-            print (filename)
+            # print("filename")
+            # print (filename)
+            #face_locations = face_recognition.face_locations(face_image, number_of_times_to_upsample=0, model="cnn")
+            # print("cnn")
+            # print(face_locations[0])
+            # top, right, bottom, left = face_locations[0]
+            # face_image = face_image[top:bottom, left:right]
+            # #pil_image = Image.fromarray(face_image)
+            # pil_image=face_image
+            # print(pil_image)
             face_image_encoding = face_recognition.face_encodings(face_image)[0]
+            #face_image_encoding = face_recognition.face_encodings(face_image,known_face_locations=face_locations,num_jitters=1)[0]
             index_key = len(self.known_encoding_faces)
             self.known_encoding_faces.append(face_image_encoding)
             index_key_string = str(index_key)
             self.face_user_keys['{0}'.format(index_key_string)] = user_id
-            print("check jj")
+            #print("check jj")
 
     def load_specific(self,userId):
 
@@ -102,7 +113,10 @@ class Face:
             print(face)
             print ("check")
             face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
-            face_image_encoding = face_recognition.face_encodings(face_image)[0]
+            face_locations = face_recognition.face_locations(face_image, number_of_times_to_upsample=0, model="cnn")
+            face_image_encoding = face_recognition.face_encodings(face_image,known_face_locations=face_locations,num_jitters=1)[0]
+
+            #face_image_encoding = face_recognition.face_encodings(face_image)[0]
             index_key = len(self.known_encoding_faces)
             self.known_encoding_faces.append(face_image_encoding)
             index_key_string = str(index_key)
@@ -119,7 +133,7 @@ class Face:
         results2 = face_recognition.api.face_distance(self.known_encoding_faces, unknown_encoding_image);
 
         print("results", results)
-        print("shubham")
+        print("manpreet")
         print("results2", results2)
 
         index_key = 0

@@ -69,12 +69,13 @@ def generate_report_daily():
     plt.pie(slices_dinner, labels=labels, autopct='%1.1f%%', shadow=True, startangle=140)
     plt.title("Dinner", y=-0.1, bbox={'facecolor': '0.8', 'pad': 3})
 
+    today = today.strftime("%d/%m/%y")
     text = "Attendance report for '%s'"%str(today)+" (Total Expected Students: %i)" % len(total_count)
     plt.text(-4.8, -1.8, text, bbox=dict(facecolor='red', alpha=0.5))
     plt.tight_layout()
 
     created = date.today()
-    created_format = created.strftime("%Y-%m-%d")
+    created_format = created.strftime("%d/%m/%y")
     plt.savefig("/home/tushar/Desktop/%s" % created_format + "_report.png", bbox_inches='tight')
 
     send_mail(created_format)
@@ -135,12 +136,14 @@ def generate_report_weekly():
     plt.pie(slices_dinner, labels=labels, autopct='%1.1f%%', shadow=True, startangle=140)
     plt.title("Dinner", y=-0.1, bbox={'facecolor': '0.8', 'pad': 3})
 
+    today = today.strftime("%d/%m/%y")
+    date_week_ago=date_week_ago.strftime("%d/%m/%y")
     text="Attendance report from '%s'"%str(date_week_ago)+" to '%s'"%str(today)+" (Total Expected Students: %i)"%(len(total_count)*7)
     plt.text(-5.5,-1.8,text,bbox=dict(facecolor='red', alpha=0.5))
     plt.tight_layout()
 
     created = date.today()
-    created_format = created.strftime("%Y-%m-%d")
+    created_format = created.strftime("%d/%m/%y")
     plt.savefig("/home/tushar/Desktop/%s" % created_format + "_report.png", bbox_inches='tight')
 
     send_mail(created_format)
@@ -198,12 +201,14 @@ def generate_report_monthly():
     plt.pie(slices_dinner, labels=labels, autopct='%1.1f%%', shadow=True, startangle=140)
     plt.title("Dinner", y=-0.1, bbox={'facecolor': '0.8', 'pad': 3})
 
+    today = today.strftime("%d/%m/%y")
+    date_week_ago = date_month_ago.strftime("%d/%m/%y")
     text="Attendance report from '%s'"%str(date_month_ago)+" to '%s'"%str(today)+" (Total Expected Students: %i)"%(len(total_count)*30)
     plt.text(-5.5,-1.8,text,bbox=dict(facecolor='red', alpha=0.5))
     plt.tight_layout()
 
     created = date.today()
-    created_format = created.strftime("%Y-%m-%d")
+    created_format = created.strftime("%d/%m/%y")
     plt.savefig("/home/tushar/Desktop/%s" % created_format + "_report.png", bbox_inches='tight')
 
     send_mail(created_format)
