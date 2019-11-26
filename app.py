@@ -8,6 +8,7 @@ from datetime import date, datetime, timedelta
 import csv
 import requests
 from flask_cors import CORS
+from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 CORS(app)
@@ -16,6 +17,8 @@ app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
 app.db = Database()
 app.face = Face(app)
+pass_key = "pRmgMa8T0INjEAfksaq2aafzoZXEuwKI7wDe4c1F8AY="
+cipher_suite = Fernet(pass_key)
 
 
 def success_handle(output, status=200, mimetype='application/json'):
@@ -153,6 +156,42 @@ def train():
     return success_handle(output)
 
 
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    admin_name = request.form['admin_name']
+    print("Information of that face", admin_name)
+
+    admin_password = request.form['admin_password']
+    print("Information of that face", admin_password)
+
+    password = app.db.select('select password from admin_user1 where admin_name = %s', [str(admin_name)])
+
+    print(str(cipher_suite.decrypt( password[0][0][2:-1].encode() ))[2:-1])
+    if password == None or len(password)==0 or len(password[0])==0 or str(cipher_suite.decrypt( password[0][0][2:-1].encode() ))[2:-1] !=admin_password:
+        output = json.dumps({"success": False})
+        return success_handle(output)
+
+
+    output = json.dumps({"success": True})
+    return success_handle(output)
+
+
+@app.route('/api/register-login', methods=['POST'])
+def registerLogin():
+    admin_name = request.form['admin_name']
+    print("Information of that face", admin_name)
+
+    admin_password = request.form['admin_password']
+    print("Information of that face", admin_password)
+
+    ciphered_password = cipher_suite.encrypt(str(admin_password).encode())
+
+    user_id = app.db.insert('INSERT INTO admin_user1(admin_name, password) values(%s,%s)', [admin_name, str(ciphered_password)])
+
+    output = json.dumps({"success": True, "data": user_id})
+    return success_handle(output)
+
 # route for user profile
 @app.route('/api/users/<int:user_id>', methods=['GET', 'DELETE'])
 def user_profile(user_id):
@@ -183,8 +222,8 @@ def slot():
     hteahourend = 17
     hteaminuteend = 30
 
-    dinnerhourstart = 19
-    dinnerminutestart = 30
+    dinnerhourstart = 18
+    dinnerminutestart = 00
     dinnerhourend = 23
     dinnerminuteend = 50
 
@@ -364,8 +403,8 @@ def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-@app.route('/api/admin/presentList/<from_date>/<to_date>', methods=['GET','POST'])
-def presentList(from_date,to_date):
+@app.route('/api/admin/presentList/<from_date>/<to_date>/<type>', methods=['GET','POST'])
+def presentList(from_date,to_date,type):
 
     year, month, day = map(int, from_date.split('-'))
     from_date = datetime(year, month, day)
@@ -378,28 +417,40 @@ def presentList(from_date,to_date):
     print((from_date - to_date).days +1)
     # print(to_date)
     total_count = app.db.select("select * from users")
-    count_breakfast = app.db.select("select * from attendance1 where type='breakfast' and created>= %s and created<= %s",
-                                    [from_date,to_date])
-    count_lunch = app.db.select("select * from attendance1 where type='lunch' and created>= %s and created<= %s",
-                                [from_date,to_date])
-    count_hitea = app.db.select("select * from attendance1 where type='hi-tea' and created>= %s and created<= %s",
-                                [from_date,to_date])
-    count_dinner = app.db.select("select * from attendance1 where type='dinner' and created>= %s and created<= %s",
-                                 [from_date,to_date])
+    if(type=='aggr'):
+        # count_breakfast = app.db.select("select * from attendance1 where type='breakfast' and created>= %s and created<= %s",
+        #                                 [from_date,to_date])
+        # count_lunch = app.db.select("select * from attendance1 where type='lunch' and created>= %s and created<= %s",
+        #                             [from_date,to_date])
+        # count_hitea = app.db.select("select * from attendance1 where type='hi-tea' and created>= %s and created<= %s",
+        #                             [from_date,to_date])
+        # count_dinner = app.db.select("select * from attendance1 where type='dinner' and created>= %s and created<= %s",
+        #                              [from_date,to_date])
+        count= app.db.select("select * from attendance1 where created>= %s and created<= %s",[from_date,to_date])
 
-    with open("/home/tushar/Desktop/presentStudents.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerows(count_breakfast)
-        writer.writerows(count_lunch)
-        writer.writerows(count_hitea)
-        writer.writerows(count_dinner)
+        with open("/home/tushar/Desktop/presentStudents.csv", "w", newline="") as f:
+            f.truncate()
+            writer = csv.writer(f)
+            writer.writerows(count)
+            #f.close()
 
+        path = "/home/tushar/Desktop/presentStudents.csv"
+        return send_file(path, as_attachment=True)
 
-    path = "/home/tushar/Desktop/presentStudents.csv"
-    return send_file(path, as_attachment=True)
+    else:
+        count=app.db.select("select * from attendance1 where type= %s and created>= %s and created<= %s",
+                                        [type, from_date,to_date])
+        with open("/home/tushar/Desktop/presentStudents.csv", "w", newline="") as f:
+            f.truncate()
+            writer = csv.writer(f)
+            writer.writerows(count)
+            #f.close()
 
-@app.route('/api/admin/absentList/<from_date>/<to_date>', methods=['GET','POST'])
-def absentList(from_date,to_date):
+        path = "/home/tushar/Desktop/presentStudents.csv"
+        return send_file(path, as_attachment=True)
+
+@app.route('/api/admin/absentList/<from_date>/<to_date>/<type>', methods=['GET','POST'])
+def absentList(from_date,to_date,type):
 
     year, month, day = map(int, from_date.split('-'))
     from_date = datetime(year, month, day)
@@ -411,30 +462,46 @@ def absentList(from_date,to_date):
     print("tush")
     print((from_date - to_date).days +1)
     # print(to_date)
-    with open("/home/tushar/Desktop/absentStudents.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        for single_date in daterange(from_date,to_date):
-            #absent_breakfast=app.db.select("select * from users,attendance1 where type='breakfast' and attendance1.created= %s and users.id not in (select attendance1.std_id from attendance1)",[single_date])
-            absent_breakfast = app.db.select(
-                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'breakfast' and created= %s)",[single_date])
-            absent_lunch = app.db.select(
-                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'lunch' and created= %s)",
-                [single_date])
-            absent_hitea = app.db.select(
-                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'hi-tea' and created= %s)",
-                [single_date])
-            absent_dinner = app.db.select(
-                "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id not in (select std_id from attendance1 where type = 'dinner' and created= %s)",
-                [single_date])
+    if(type=='aggr'):
+        with open("/home/tushar/Desktop/absentStudents.csv", "w", newline="") as f:
+            f.truncate()
+            writer = csv.writer(f)
+            for single_date in daterange(from_date,to_date):
+                #absent_breakfast=app.db.select("select * from users,attendance1 where type='breakfast' and attendance1.created= %s and users.id not in (select attendance1.std_id from attendance1)",[single_date])
+                # absent_breakfast = app.db.select(
+                #     "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id=attendance1.std_id and attendance1.type = %s and users.id not in(select std_id from attendance1 where type=%s and created=%s)",[single_date])
+                # absent_lunch = app.db.select(
+                #     "select * from users where users.id not in (select std_id from attendance1 where type = 'lunch' and created= %s)",
+                #     [single_date])
+                # absent_hitea = app.db.select(
+                #     "select * from users where users.id not in (select std_id from attendance1 where type = 'hi-tea' and created= %s)",
+                #     [single_date])
+                # absent_dinner = app.db.select(
+                #     "select * from users where users.id not in (select std_id from attendance1 where type = 'dinner' and created= %s)",
+                #     [single_date])
+                count = app.db.select("select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id=attendance1.std_id and users.id not in(select std_id from attendance1 where created=%s)",
+                                      [single_date])
+                writer.writerows(count)
+                # writer.writerows(absent_lunch)
+                # writer.writerows(absent_hitea)
+                # writer.writerows(absent_dinner)
+            #f.close()
 
-            writer.writerows(absent_breakfast)
-            writer.writerows(absent_lunch)
-            writer.writerows(absent_hitea)
-            writer.writerows(absent_dinner)
-            #print(absent_breakfast)
+        path = "/home/tushar/Desktop/absentStudents.csv"
+        return send_file(path, as_attachment=True)
 
-    path = "/home/tushar/Desktop/absentStudents.csv"
-    return send_file(path, as_attachment=True)
+    else:
+        with open("/home/tushar/Desktop/presentStudents.csv", "w", newline="") as f:
+            f.truncate()
+            writer = csv.writer(f)
+            for single_date in daterange(from_date, to_date):
+                count = app.db.select(
+                    "select users.id,users.name,attendance1.type,attendance1.created from users,attendance1 where users.id=attendance1.std_id and attendance1.type = %s and users.id not in(select std_id from attendance1 where type=%s and created=%s)",
+                    [type, type, single_date])
+                writer.writerows(count)
+                #f.close()
 
+        path = "/home/tushar/Desktop/presentStudents.csv"
+        return send_file(path, as_attachment=True)
 
 app.run()

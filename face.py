@@ -73,7 +73,7 @@ class Face:
             face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
             # print("filename")
             # print (filename)
-            face_locations = face_recognition.face_locations(face_image, number_of_times_to_upsample=0, model="cnn")
+            face_locations = face_recognition.face_locations(face_image, number_of_times_to_upsample=0,model='cnn')
             # print("cnn")
             # print(face_locations[0])
             # top, right, bottom, left = face_locations[0]
@@ -81,8 +81,8 @@ class Face:
             # #pil_image = Image.fromarray(face_image)
             # pil_image=face_image
             # print(pil_image)
-            #face_image_encoding = face_recognition.face_encodings(face_image)[0]
-            face_image_encoding = face_recognition.face_encodings(face_image,known_face_locations=face_locations,num_jitters=1)[0]
+            # face_image_encoding = face_recognition.face_encodings(face_image)[0]
+            face_image_encoding = face_recognition.face_encodings(face_image,known_face_locations=face_locations,num_jitters=3)[0]
             index_key = len(self.known_encoding_faces)
             self.known_encoding_faces.append(face_image_encoding)
             index_key_string = str(index_key)
@@ -113,8 +113,8 @@ class Face:
             print(face)
             print ("check")
             face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
-            face_locations = face_recognition.face_locations(face_image, number_of_times_to_upsample=0, model="cnn")
-            face_image_encoding = face_recognition.face_encodings(face_image,known_face_locations=face_locations,num_jitters=1)[0]
+            face_locations = face_recognition.face_locations(face_image, number_of_times_to_upsample=0,model='cnn')
+            face_image_encoding = face_recognition.face_encodings(face_image,known_face_locations=face_locations,num_jitters=3)[0]
 
             #face_image_encoding = face_recognition.face_encodings(face_image)[0]
             index_key = len(self.known_encoding_faces)
